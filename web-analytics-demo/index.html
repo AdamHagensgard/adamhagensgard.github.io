@@ -3,9 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Web Analytics Demo</title>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-KSRJ9KNV');</script>
+    <!-- End Google Tag Manager -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #analytics {
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .metric {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-    
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KSRJ9KNV"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <div class="card">
+        <h1>Web Analytics Demo</h1>
+        <p>This page demonstrates basic web analytics tracking. Try interacting with the elements below to see the analytics data update.</p>
+    </div>
+
+    <div class="card">
+        <h2>Interaction Zone</h2>
+        <button onclick="trackEvent('button_click', 'Button A')">Button A</button>
+        <button onclick="trackEvent('button_click', 'Button B')">Button B</button>
+        <button onclick="trackEvent('button_click', 'Button C')">Button C</button>
+    </div>
+
+    <div class="card">
+        <h2>Live Analytics</h2>
+        <div id="analytics">
+            <div class="metric">
+                Page Views: <span id="pageViews">1</span>
+            </div>
+            <div class="metric">
+                Time on Page: <span id="timeOnPage">0:00</span>
+            </div>
+            <div class="metric">
+                Button Clicks: <span id="buttonClicks">0</span>
+            </div>
+        </div>
+        <div id="eventLog"></div>
+    </div>
+
+    <script>
+        // Analytics tracking
+        let pageViews = parseInt(localStorage.getItem('pageViews')) || 0;
+        let buttonClicks = 0;
+        let startTime = new Date();
+
+        // Initialize page view counter
+        pageViews++;
+        localStorage.setItem('pageViews', pageViews);
+        document.getElementById('pageViews').textContent = pageViews;
+
+        // Update time on page
+        setInterval(() => {
+            const timeSpent = Math.floor((new Date() - startTime) / 1000);
+            const minutes = Math.floor(timeSpent / 60);
+            const seconds = timeSpent % 60;
+            document.getElementById('timeOnPage').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        // Track events
+        function trackEvent(eventType, eventLabel) {
+            buttonClicks++;
+            document.getElementById('buttonClicks').textContent = buttonClicks;
+
+            // Log event
+            const event = {
+                type: eventType,
+                label: eventLabel,
+                timestamp: new Date().toLocaleTimeString()
+            };
+
+            // Add to event log
+            const eventLog = document.getElementById('eventLog');
+            const eventElement = document.createElement('div');
+            eventElement.className = 'card';
+            eventElement.innerHTML = `
+                <strong>${event.timestamp}</strong>: 
+                ${event.type} - ${event.label}
+            `;
+            eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+            // Send to Google Tag Manager
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': eventType,
+                'eventLabel': eventLabel
+            });
+        }
+
+        // Track page view
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'pageview',
+            'page': window.location.pathname
+        });
+    </script>
 </body>
 </html>
