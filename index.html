@@ -15,14 +15,24 @@
         body {
             margin: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background-color: black;
             overflow: hidden;
+            color: white;
+            font-family: Arial, sans-serif;
         }
         canvas {
             background-color: white;
+        }
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            font-size: 24px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -32,6 +42,10 @@
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     
+    <div class="scoreboard">
+        <span>Player: <span id="playerScore">0</span></span>
+        <span>AI: <span id="aiScore">0</span></span>
+    </div>
     <canvas id="pongCanvas" width="800" height="400"></canvas>
     <script>
         const canvas = document.getElementById("pongCanvas");
@@ -42,6 +56,8 @@
         let aiY = canvas.height / 2 - paddleHeight / 2;
         let ballX = canvas.width / 2, ballY = canvas.height / 2;
         let ballSpeedX = 4, ballSpeedY = 4;
+        let playerScore = 0, aiScore = 0;
+        const winningScore = 5;
         
         function drawRect(x, y, width, height, color) {
             ctx.fillStyle = color;
@@ -71,13 +87,31 @@
                 ballSpeedX *= -1;
             }
             
-            if (ballX < 0 || ballX > canvas.width) {
-                ballX = canvas.width / 2;
-                ballY = canvas.height / 2;
-                ballSpeedX *= -1;
+            if (ballX < 0) {
+                aiScore++;
+                resetGame();
+            }
+            
+            if (ballX > canvas.width) {
+                playerScore++;
+                resetGame();
             }
             
             aiY += (ballY - (aiY + paddleHeight / 2)) * 0.1;
+        }
+        
+        function resetGame() {
+            if (playerScore === winningScore || aiScore === winningScore) {
+                alert(playerScore === winningScore ? "You Win!" : "AI Wins!");
+                playerScore = 0;
+                aiScore = 0;
+            }
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX = (Math.random() > 0.5 ? 4 : -4);
+            ballSpeedY = (Math.random() > 0.5 ? 4 : -4);
+            document.getElementById("playerScore").textContent = playerScore;
+            document.getElementById("aiScore").textContent = aiScore;
         }
         
         function render() {
