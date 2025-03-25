@@ -52,10 +52,6 @@
             [[1, 1, 1], [0, 0, 1]]
         ];
         
-        let currentPiece = { shape: pieces[Math.floor(Math.random() * pieces.length)], x: 4, y: 0 };
-        let score = 0;
-        let gameInterval;
-        
         function drawBoard() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let r = 0; r < ROWS; r++) {
@@ -68,15 +64,32 @@
             }
         }
         
-        function drawPiece() {
+        function drawPiece(piece, x, y) {
             ctx.fillStyle = "red";
-            currentPiece.shape.forEach((row, rIdx) => {
+            piece.forEach((row, rIdx) => {
                 row.forEach((cell, cIdx) => {
                     if (cell) {
-                        ctx.fillRect((currentPiece.x + cIdx) * TILE_SIZE, (currentPiece.y + rIdx) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                        ctx.fillRect((x + cIdx) * TILE_SIZE, (y + rIdx) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                     }
                 });
             });
+        }
+        
+        let currentPiece = { shape: pieces[Math.floor(Math.random() * pieces.length)], x: 4, y: 0 };
+        let dropCounter = 0;
+        let lastTime = 0;
+        
+        function update(time = 0) {
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+            if (dropCounter > 500) {
+                movePiece(0, 1);
+                dropCounter = 0;
+            }
+            drawBoard();
+            drawPiece(currentPiece.shape, currentPiece.x, currentPiece.y);
+            requestAnimationFrame(update);
         }
         
         function movePiece(dx, dy) {
@@ -84,28 +97,18 @@
             currentPiece.y += dy;
         }
         
-        function dropPiece() {
-            movePiece(0, 1);
-        }
-        
         function rotatePiece() {
             currentPiece.shape = currentPiece.shape[0].map((_, i) => currentPiece.shape.map(row => row[i])).reverse();
-        }
-        
-        function update() {
-            dropPiece();
-            drawBoard();
-            drawPiece();
         }
         
         document.addEventListener("keydown", (event) => {
             if (event.key === "ArrowLeft") movePiece(-1, 0);
             if (event.key === "ArrowRight") movePiece(1, 0);
-            if (event.key === "ArrowDown") dropPiece();
+            if (event.key === "ArrowDown") movePiece(0, 1);
             if (event.key === "ArrowUp") rotatePiece();
         });
         
-        gameInterval = setInterval(update, 500);
+        update();
     </script>
 </body>
 </html>
