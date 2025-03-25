@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Pong Game</title>
+    <title>Tetris Game</title>
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -13,26 +13,17 @@
     <!-- End Google Tag Manager -->
     <style>
         body {
-            margin: 0;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background-color: black;
-            overflow: hidden;
             color: white;
             font-family: Arial, sans-serif;
         }
         canvas {
             background-color: white;
-        }
-        .scoreboard {
-            display: flex;
-            justify-content: space-between;
-            width: 800px;
-            font-size: 24px;
-            margin-bottom: 10px;
+            display: block;
         }
     </style>
 </head>
@@ -42,96 +33,79 @@
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     
-    <div class="scoreboard">
-        <span>Player: <span id="playerScore">0</span></span>
-        <span>AI: <span id="aiScore">0</span></span>
-    </div>
-    <canvas id="pongCanvas" width="800" height="400"></canvas>
+    <canvas id="tetris" width="300" height="600"></canvas>
     <script>
-        const canvas = document.getElementById("pongCanvas");
+        const canvas = document.getElementById("tetris");
         const ctx = canvas.getContext("2d");
+        const ROWS = 20;
+        const COLUMNS = 10;
+        const TILE_SIZE = 30;
+        let board = Array.from({ length: ROWS }, () => Array(COLUMNS).fill(0));
         
-        const paddleWidth = 10, paddleHeight = 80;
-        let playerY = canvas.height / 2 - paddleHeight / 2;
-        let aiY = canvas.height / 2 - paddleHeight / 2;
-        let ballX = canvas.width / 2, ballY = canvas.height / 2;
-        let ballSpeedX = 4, ballSpeedY = 4;
-        let playerScore = 0, aiScore = 0;
-        const winningScore = 5;
+        const pieces = [
+            [[1, 1, 1, 1]],
+            [[1, 1], [1, 1]],
+            [[0, 1, 1], [1, 1, 0]],
+            [[1, 1, 0], [0, 1, 1]],
+            [[1, 1, 1], [0, 1, 0]],
+            [[1, 1, 1], [1, 0, 0]],
+            [[1, 1, 1], [0, 0, 1]]
+        ];
         
-        function drawRect(x, y, width, height, color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, width, height);
+        let currentPiece = { shape: pieces[Math.floor(Math.random() * pieces.length)], x: 4, y: 0 };
+        let score = 0;
+        let gameInterval;
+        
+        function drawBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLUMNS; c++) {
+                    if (board[r][c]) {
+                        ctx.fillStyle = "blue";
+                        ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    }
+                }
+            }
         }
         
-        function drawBall(x, y, radius, color) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
+        function drawPiece() {
+            ctx.fillStyle = "red";
+            currentPiece.shape.forEach((row, rIdx) => {
+                row.forEach((cell, cIdx) => {
+                    if (cell) {
+                        ctx.fillRect((currentPiece.x + cIdx) * TILE_SIZE, (currentPiece.y + rIdx) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    }
+                });
+            });
+        }
+        
+        function movePiece(dx, dy) {
+            currentPiece.x += dx;
+            currentPiece.y += dy;
+        }
+        
+        function dropPiece() {
+            movePiece(0, 1);
+        }
+        
+        function rotatePiece() {
+            currentPiece.shape = currentPiece.shape[0].map((_, i) => currentPiece.shape.map(row => row[i])).reverse();
         }
         
         function update() {
-            ballX += ballSpeedX;
-            ballY += ballSpeedY;
-            
-            if (ballY <= 0 || ballY >= canvas.height) {
-                ballSpeedY *= -1;
-            }
-            
-            if (ballX <= paddleWidth && ballY > playerY && ballY < playerY + paddleHeight) {
-                ballSpeedX *= -1;
-            }
-            
-            if (ballX >= canvas.width - paddleWidth && ballY > aiY && ballY < aiY + paddleHeight) {
-                ballSpeedX *= -1;
-            }
-            
-            if (ballX < 0) {
-                aiScore++;
-                resetGame();
-            }
-            
-            if (ballX > canvas.width) {
-                playerScore++;
-                resetGame();
-            }
-            
-            aiY += (ballY - (aiY + paddleHeight / 2)) * 0.1;
+            dropPiece();
+            drawBoard();
+            drawPiece();
         }
         
-        function resetGame() {
-            if (playerScore === winningScore || aiScore === winningScore) {
-                alert(playerScore === winningScore ? "You Win!" : "AI Wins!");
-                playerScore = 0;
-                aiScore = 0;
-            }
-            ballX = canvas.width / 2;
-            ballY = canvas.height / 2;
-            ballSpeedX = (Math.random() > 0.5 ? 4 : -4);
-            ballSpeedY = (Math.random() > 0.5 ? 4 : -4);
-            document.getElementById("playerScore").textContent = playerScore;
-            document.getElementById("aiScore").textContent = aiScore;
-        }
-        
-        function render() {
-            drawRect(0, 0, canvas.width, canvas.height, "black");
-            drawRect(0, playerY, paddleWidth, paddleHeight, "white");
-            drawRect(canvas.width - paddleWidth, aiY, paddleWidth, paddleHeight, "white");
-            drawBall(ballX, ballY, 10, "white");
-        }
-        
-        function gameLoop() {
-            update();
-            render();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        window.addEventListener("mousemove", (event) => {
-            playerY = event.clientY - paddleHeight / 2;
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowLeft") movePiece(-1, 0);
+            if (event.key === "ArrowRight") movePiece(1, 0);
+            if (event.key === "ArrowDown") dropPiece();
+            if (event.key === "ArrowUp") rotatePiece();
         });
         
-        gameLoop();
+        gameInterval = setInterval(update, 500);
     </script>
 </body>
 </html>
