@@ -48,8 +48,15 @@
 
     <div class="card">
         <h1>Web Analytics Demo</h1>
-        <p>This page demonstrates basic web analytics tracking.</p>
+        <p>This page demonstrates basic web analytics tracking. Try interacting with the elements below to see the analytics data update.</p>
         <a href="https:/adamhagensgard.github.io/web-analytics-demo/second-session/" target="_main">Till övning</a>
+    </div>
+
+    <div class="card">
+        <h2>Interaction Zone</h2>
+        <button onclick="trackEvent('button_click', 'Button A')">Button A</button>
+        <button onclick="trackEvent('button_click', 'Button B')">Button B</button>
+        <button onclick="trackEvent('button_click', 'Button C')">Button C</button>
     </div>
 </body>
 </html>
